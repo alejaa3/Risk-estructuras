@@ -6,7 +6,10 @@ import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.time.Duration;
+import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 
 import org.primefaces.model.diagram.Connection;
 import org.primefaces.model.diagram.DefaultDiagramModel;
@@ -18,6 +21,7 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonParser;
 
 import co.edu.unbosque.model.Country;
+import co.edu.unbosque.model.Player;
 import co.edu.unbosque.util.AESUtil;
 import co.edu.unbosque.util.grafo.generico.Edge;
 import co.edu.unbosque.util.grafo.generico.Graph;
@@ -37,676 +41,510 @@ import org.primefaces.model.diagram.endpoint.EndPointAnchor;
 
 import jakarta.inject.Named;
 
-@Named("diagramHierarchicalView")
+//@Named("diagramHierarchicalView")
 @RequestScoped
 public class LoginBean {
-	//private Controller c;
-	private int numberOfPlayers=6;
-	private MyLinkedList<Element> nodes;
-	private List<Graph> graph;
-	private String selectedRegion;
-	public LoginBean() {
-		//c=new Controller();
-		nodes=new MyLinkedList<Element>();
-		
-		
-		
-		
-		countries = new MyLinkedList<Vertex<Country>>();
-		g=new Graph();
-		fillRecionList();
-		createBoard();
-		//userRepo.save(g);
-		
-		
-	}
+
+private String text1;
+private String text2;
+private String text3;
+private String text4;
+private String text5;
+private int number;
+private Map<String, Map<String, String>> data = new HashMap<>();
+private String country;
+private String city;
+private Map<String, String> countries;
+private Map<String, String> cities;
+private MyLinkedList<Vertex<String>> regions;
+
+private MyLinkedList<String> nAmerica;
+private MyLinkedList<String> sAmerica;
+private MyLinkedList<String> europe;
+private MyLinkedList<String> asia;
+private MyLinkedList<String> oceania;
+private MyLinkedList<String> africa;
+private MyLinkedList<Player> listOfPlayers;
+
+int numberOfPlayers=3;
+private Graph g;
+
+@PostConstruct
+public void init() {
 	
 	
-	public void test() {
-		System.out.println("the link is working");
-	}
-
-	private static final HttpClient httpClient = HttpClient.newBuilder().version(HttpClient.Version.HTTP_1_1)
-			.connectTimeout(Duration.ofSeconds(10)).build();
 	
+	regions=new MyLinkedList<Vertex<String>>();
+	nAmerica=new MyLinkedList<String>();
+	sAmerica=new MyLinkedList<String>();
+	europe=new MyLinkedList<String>();
+	asia=new MyLinkedList<String>();
+	oceania=new MyLinkedList<String>();
+	africa=new MyLinkedList<String>();
+	listOfPlayers=new MyLinkedList<Player>();
 	
-    private DefaultDiagramModel model;
-
-    @PostConstruct
-    public void init() {
-        model = new DefaultDiagramModel();
-        model.setMaxConnections(-1);
-        model.setConnectionsDetachable(false);
-        
-        
-        String name;
-        Element temp;
-    	nodes.add(new Element(countries.get(0).getInfo().getName(), "25em", "6em"));
-    	nodes.add(new Element(countries.get(1).getInfo().getName(), "25em", "6em"));
-
-        for (int i = 0; i < 2; i++) {
-        	//System.out.println(countries.get(i).getInfo().getName());
-        	
-        	//name=countries.get(1).getInfo().getName().toString();
-        	//name=countries.get(2).getInfo().getName().toString();
-        	
-        	//System.out.println(name);
-        	//System.out.println(temp.getData());
-
-        	nodes.get(i).addEndPoint(createEndPoint(EndPointAnchor.BOTTOM));
-        	nodes.get(i).addEndPoint(createEndPoint(EndPointAnchor.TOP));
-            
-            model.addElement(nodes.get(i));
-		}
-        
-        StraightConnector connector = new StraightConnector();
-        connector.setPaintStyle("{stroke:'#404a4e', strokeWidth:3}");
-        connector.setHoverPaintStyle("{stroke:'#20282b'}");
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        //model.connect(new Connection(nodes.get(0).getEndPoints().get(0), nodes.get(1).getEndPoints().get(0), connector));
-
-
-        Element ceo = new Element("CEO", "25em", "6em");
-        ceo.addEndPoint(createEndPoint(EndPointAnchor.BOTTOM));
-        model.addElement(ceo);
-
-        //CFO
-        Element cfo = new Element();
-        cfo.addEndPoint(createEndPoint(EndPointAnchor.TOP));
-        cfo.addEndPoint(createEndPoint(EndPointAnchor.BOTTOM));
-
-        Element fin = new Element("FIN", "25em", "30em");
-        fin.addEndPoint(createEndPoint(EndPointAnchor.TOP));
-
-        Element pur = new Element("PUR", "250em", "30em");
-        pur.addEndPoint(createEndPoint(EndPointAnchor.TOP));
-
-        model.addElement(cfo);
-        model.addElement(fin);
-        model.addElement(pur);
-
-        //CTO
-        Element cto = new Element("CTO", "25em", "18em");
-        cto.addEndPoint(createEndPoint(EndPointAnchor.TOP));
-        cto.addEndPoint(createEndPoint(EndPointAnchor.BOTTOM));
-
-        Element dev = new Element("DEV", "25em", "30em");
-        dev.addEndPoint(createEndPoint(EndPointAnchor.TOP));
-
-        Element tst = new Element("TST", "25em", "30em");
-        tst.addEndPoint(createEndPoint(EndPointAnchor.TOP));
-
-        model.addElement(cto);
-        model.addElement(dev);
-        model.addElement(tst);
-
-        
-
-        //connections
-        model.connect(new Connection(ceo.getEndPoints().get(0), cfo.getEndPoints().get(0), connector));
-        model.connect(new Connection(ceo.getEndPoints().get(0), cto.getEndPoints().get(0), connector));
-        model.connect(new Connection(cfo.getEndPoints().get(1), fin.getEndPoints().get(0), connector));
-        model.connect(new Connection(cfo.getEndPoints().get(1), pur.getEndPoints().get(0), connector));
-        model.connect(new Connection(cto.getEndPoints().get(1), dev.getEndPoints().get(0), connector));
-        model.connect(new Connection(cto.getEndPoints().get(1), tst.getEndPoints().get(0), connector));
-    }
-
-    private EndPoint createEndPoint(EndPointAnchor anchor) {
-        DotEndPoint endPoint = new DotEndPoint(anchor);
-        endPoint.setStyle("{fill:'#404a4e'}");
-        endPoint.setHoverStyle("{fill:'#20282b'}");
-
-        return endPoint;
-    }
-    /*
-public void create() {
-		
-		boolean error=false;
-		average=calculateAverage(newGrade1, newGrade2, newGrade3);
-		//System.out.println(average);
-		if(newName==""||newGrade1==""||newGrade2==""||newGrade2=="") {
-			errorMessage("asegurese de llenar todos los campos");
-			error=true;
-		}
-			try {
-			Integer.parseInt(newGrade1);
-			Integer.parseInt(newGrade2);
-			Integer.parseInt(newGrade3);
-			}catch(NumberFormatException e) {
-				e.printStackTrace();
-				errorMessage("Por favor, recuerde que las notas no contienen letras");
-				error=true;
-				return;
-				
-			}
-			if (containsNumbers(newName)==true) {
-				errorMessage("Por favor, digite un nombre sin números ni carácteres especiales");
-				error=true;
-			}
-			if (newName.length()==1) {
-				errorMessage("Por favor, digite un nombre válido");
-				error=true;
-			}
-		if(error==false) {
-		int suma=Integer.parseInt(newGrade1)+Integer.parseInt(newGrade2)+Integer.parseInt(newGrade3);
-		int aver=suma/3;
-		String average=String.valueOf(aver);
-		String iv = "holamundohfooooo";
-		String key = "holamundohfmmmmm";
-		//String average=String.valueOf(newGrade1);
-		newName=AESUtil.encrypt(key, iv, newName);
-		newGrade1=AESUtil.encrypt(key, iv, newGrade1);
-		newGrade2=AESUtil.encrypt(key, iv, newGrade2);
-		newGrade3=AESUtil.encrypt(key, iv, newGrade3);
-		
-		//serv.createEncrypted(newName, newGrade1, newGrade2, newGrade3);
-		
-		//usersMessage("Agregado correctamente");
-		System.out.println(doPost("http://localhost:8081/user/createuserjason",
-				"{\"name\": \"" + newName + "\",\"grade1\": \"" + newGrade1 + "\",\"grade2\": \"" + newGrade2 + "\",\"grade3\": \"" + newGrade3 + "\",}"));
-		infoMessage("Su promedio es de "+average);
-		
-		
-		
-		
-
+	g=new Graph();
 	
-	}
-		
-		
-		
-		
-
-	}
-/*
-	public void delete() {
-		System.out.println(doDelete("http://localhost:8081/user/deletebyid/{id}", id.toString()));
-		usersMessage("Success");
-
-	}
-*/
+	fillRecionList();
+	createBoard();
+	fillContinents();
+	
+    countries = new HashMap<>();
     
-	public String mostrar() {
-		
-		System.out.println(doGet("http://localhost:8081/user/getall"));
-
-		String graph1 = doGet("http://localhost:8081/user/getall");
-		//Message("Success");
-		return "";
-
-	}
-/*
-	public void update() {
-		System.out.println(doPut("http://localhost:8081/user/modifyuserjason/{id}",
-				"{\"userName\": \"" + newUsername + "\",\"password\": \"" + newPass1 + "\"}", id.toString()));
-		usersMessage("Success");
-	}
-*/
+    countries.put("Alaska", "Alaska");
+	//System.out.println("first vertex"+regions.get(0).getInfo(, );
+	countries.put("Northwest Territory", "Northwest Territory");
+	countries.put("Greenland", "Greenland");
+	countries.put("Alberta", "Alberta");
+	countries.put("Ontario", "Ontario");
+	countries.put("Quebec", "Quebec");
+	countries.put("Western United States", "Western United States");
+	countries.put("Eastern United States", "Eastern United States");
+	countries.put("Central America", "Central America");
+	//countries.put("Hawaii*", );
+	countries.put("Venezuela", "Venezuela");
+	countries.put("Peru", "Peru");
+	countries.put("Brazil", "Brazil");
+	countries.put("Argentina", "Argentina");
+	//countries.put("Falkland Islands*", );
+	countries.put("North Africa", "North Africa");
+	countries.put("Egypt", "Egypt");
+	countries.put("East Africa", "East Africa");
+	countries.put("Congo", "Congo");
+	countries.put("South Africa", "South Africa");
+	countries.put("Madagascar", "Madagascar");
+	countries.put("Iceland", "Iceland");
+	countries.put("Svalbard*", "Svalbard*");
+	countries.put("Scandinavia", "Scandinavia");
+	countries.put("Ukraine", "Ukraine");
+	countries.put("Great Britain", "Great Britain");
+	countries.put("Northern Europe", "Northern Europe");
+	countries.put("Southern Europe", "Southern Europe");
+	countries.put("Western Europe", "Western Europe");
+	countries.put("Indonesia", "Indonesia");
+	//countries.put("Phillipines*", );
+	countries.put("New Guinea", "New Guinea");
+	countries.put("Western Australia", "Western Australia");
+	countries.put("Eastern Australia", "Eastern Australia");
+	//countries.put("New Zealand*", );
+	countries.put("Siam", "Siam");
+	countries.put("India", "India");
+	countries.put("China", "China");
+	countries.put("Mongolia", "Mongolia");
+	countries.put("Japan", "Japan");
+	countries.put("Irkutsk", "Irkutsk");
+	countries.put("Yakutsk", "Yakutsk");
+	countries.put("Kamchatka", "Kamchatka");
+	countries.put("Siberia", "Siberia");
+	countries.put("Afghanistan", "Afghanistan");
+	countries.put("Ural", "Ural");
+	countries.put("Middle East", "Middle East");
     
-	public static String doGet(String url) {
-		HttpRequest request = HttpRequest.newBuilder().GET().uri(URI.create(url))
-				.setHeader("User-Agent", "Java 11 HttpClient Bot").build();
+    //countries.put("", "");
 
-		HttpResponse<String> response = null;
-		try {
-			response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
-		} catch (IOException e) {
-			e.printStackTrace();
-		} catch (InterruptedException e) {
-			e.printStackTrace();
+	for (int i = 0; i < countries.size(); i++) {
+		cities = new HashMap<>();
+		for (int j = 0; j < regions.get(i).getAdyacentEdges().size(); j++) {
+		    //cities.put(regions.get(i).getAdyacentEdges().get(j).getDestination().getInfo().toString()+"", regions.get(i).getAdyacentEdges().get(j).getDestination().getInfo().toString()+"");
 		}
-
-		System.out.println("status code -> " + response.statusCode());
-
-		String uglyJson = response.body();
-		return "";
+		//data.put(regions.get(i).getAdyacentEdges().get(0).getSource().getInfo().toString()+"", cities);
+	    //cities.put("Berlin", "Berlin");
+	    //cities.put("Munich", "Munich");
+	    //cities.put("Frankfurt", "Frankfurt");
+	    //data.put(regions.get(i).getInfo()+"", cities);
 	}
-/*
-	public static String doPut(String url, String json, String id) {
-		url = url.replace("{id}", id);
+	
 
-		// add json header
-		HttpRequest request = HttpRequest.newBuilder().PUT(HttpRequest.BodyPublishers.ofString(json))
-				.uri(URI.create(url)).setHeader("User-Agent", "Java 11 HttpClient Bot")
-				.header("Content-Type", "application/json").build();
+    
 
-		HttpResponse<String> response = null;
-		try {
-			response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
-		} catch (InterruptedException e) {
-			e.printStackTrace();
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-		System.out.println("status code -> " + response.statusCode());
-		System.out.println(response.body());
-		return response.body();
-	}
-
-	public static String doDelete(String url, String id) {
-		url = url.replace("{id}", id);
-
-		// add json header
-		HttpRequest request = HttpRequest.newBuilder().DELETE().uri(URI.create(url))
-				.setHeader("User-Agent", "Java 11 HttpClient Bot") // add request header
-				.header("Content-Type", "application/json").build();
-
-		HttpResponse<String> response = null;
-		try {
-			response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
-		} catch (InterruptedException e) {
-			e.printStackTrace();
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-		System.out.println("status code -> " + response.statusCode());
-
-		return response.body();
-	}
-
-	public static String mostrarJason(String url) {
-		HttpRequest request = HttpRequest.newBuilder().GET().uri(URI.create(url))
-				.setHeader("User-Agent", "Java 11 HttpClient Bot").build();
-
-		HttpResponse<String> response = null;
-		try {
-			response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
-		} catch (IOException e) {
-			e.printStackTrace();
-		} catch (InterruptedException e) {
-			e.printStackTrace();
-		}
-
-		System.out.println("status code -> " + response.statusCode());
-
-		String uglyJson = response.body();
-		return prettyPrintUsingGson(uglyJson);
-	}
-*/
-	public static String prettyPrintUsingGson(String uglyJson) {
-		//Gson gson = new GsonBuilder().setLenient().setPrettyPrinting().create();
-		Gson gson = new Gson();
-		JsonElement jsonElement = JsonParser.parseString(uglyJson);
-		String prettyJsonString = gson.toJson(jsonElement);
-		return prettyJsonString;
-	}
-/*
-	public void matchPasswords() {
-
-	}
-
-	public static String doPost(String url, String json) {
-		System.out.println(1);
-
-		// add json header
-		HttpRequest request = HttpRequest.newBuilder().POST(HttpRequest.BodyPublishers.ofString(json))
-				.uri(URI.create(url)).setHeader("User-Agent", "Java 11 HttpClient Bot") // add request header
-				.header("Content-Type", "application/json").build();
-
-		HttpResponse<String> response = null;
-
-		try {
-			response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
-		} catch (InterruptedException e) {
-			e.printStackTrace();
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-		System.out.println("status code -> " + response.statusCode());
-
-		return response.body();
-	}
+    cities = new HashMap<>();
+    cities.put("Sao Paulo", "Sao Paulo");
+    cities.put("Rio de Janerio", "Rio de Janerio");
+    cities.put("Salvador", "Salvador");
+    data.put("Brazil", cities);
+    
+    //cities = new HashMap<>();
+    //for (int i = 0; i < regions.get(0).getAdyacentEdges().size(); i++) {
+      //  cities.put(regions.get(0).getAdyacentEdges().get(i).getDestination().getInfo()+"", regions.get(0).getAdyacentEdges().get(0).getDestination().getInfo()+"");
+	//}
+    
+    //data.put(regions.get(0).getInfo(), cities);
 }
-*/
-    public DiagramModel getModel() {
-        return model;
+
+public void increment() {
+    number++;
+}
+
+public void handleKeyEvent() {
+    text5 = text5.toUpperCase();
+}
+
+public String getText1() {
+    return text1;
+}
+
+public void setText1(String text1) {
+    this.text1 = text1;
+}
+
+public String getText2() {
+    return text2;
+}
+
+public void setText2(String text2) {
+    this.text2 = text2;
+}
+
+public String getText3() {
+    return text3;
+}
+
+public void setText3(String text3) {
+    this.text3 = text3;
+}
+
+public String getText4() {
+    return text4;
+}
+
+public void setText4(String text4) {
+    this.text4 = text4;
+}
+
+public String getText5() {
+    return text5;
+}
+
+public void setText5(String text5) {
+    this.text5 = text5;
+}
+
+public int getNumber() {
+    return number;
+}
+
+public Map<String, Map<String, String>> getData() {
+    return data;
+}
+
+public String getCountry() {
+    return country;
+}
+
+public void setCountry(String country) {
+    this.country = country;
+}
+
+public String getCity() {
+    return city;
+}
+
+public void setCity(String city) {
+    this.city = city;
+}
+
+public Map<String, String> getCountries() {
+    return countries;
+}
+
+public Map<String, String> getCities() {
+    return cities;
+}
+
+public void onCountryChange() {
+	System.out.println(222);
+	System.out.println(country);
+	
+	cities = new HashMap<>();
+    cities.put("New York", "New York");
+    cities.put("San Francisco", "San Francisco");
+    //cities.put("country", cities);
+	
+    if (country != null && !"".equals(country)) {
+        cities = data.get(country);
+    }
+    else {
+        cities = new HashMap<>();
+        
+    }
+}
+
+public void displayLocation() {
+    FacesMessage msg;
+    if (city != null && country != null) {
+        msg = new FacesMessage("Selected", city + " of " + country);
+    }
+    else {
+        msg = new FacesMessage(FacesMessage.SEVERITY_ERROR, "Invalid", "City is not selected.");
     }
 
-
-
-	public int getNumberOfPlayers() {
-		return numberOfPlayers;
-	}
-
-	public void setNumberOfPlayers(int numberOfPlayers) {
-		//c.setNumberOfPlayers(numberOfPlayers);
-		this.numberOfPlayers = numberOfPlayers;
-	}
-
-	public void setModel(DefaultDiagramModel model) {
-		this.model = model;
-	}
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	private MyLinkedList<Vertex<Country>> countries;
-	private Graph g;
-	//private GraphRepository userRepo;
-
-/*
-	private static final Logger LOG=LoggerFactory.getLogger(LoadDataBase.class);
-	
-	private CommandLineRunner initDataBase(UserRepository userRepo) {
-		return args -> {
-			Optional<Player> found=userRepo.findByName("admin");
-			if(found.isPresent()) {
-				LOG.info("admin already exists, skipping admin creation");
-			}else {
-				userRepo.save(new Player(AESUtil.encrypt("admin"), AESUtil.encrypt("0"),AESUtil.encrypt("0"),AESUtil.encrypt("0"),AESUtil.encrypt("0")));
-				LOG.info("pre-loading admin-user");
-			}
-		};//landa
-	}
-		
-	
-	*/
-	private void fillRecionList() {
-		countries.add(new Vertex(new Country("Alaska")));
-		countries.add(new Vertex(new Country("Northwest Territory")));
-		countries.add(new Vertex(new Country("Greenland")));
-		countries.add(new Vertex(new Country("Alberta")));
-		countries.add(new Vertex(new Country("Ontario")));
-		countries.add(new Vertex(new Country("Quebec")));
-		countries.add(new Vertex(new Country("Western United States")));
-		countries.add(new Vertex(new Country("Eastern United States")));
-		countries.add(new Vertex(new Country("Central America")));
-		countries.add(new Vertex(new Country("Hawaii*")));
-		countries.add(new Vertex(new Country("Venezuela")));
-		countries.add(new Vertex(new Country("Peru")));
-		countries.add(new Vertex(new Country("Brazil")));
-		countries.add(new Vertex(new Country("Argentina")));
-		countries.add(new Vertex(new Country("Falkland Islands*")));
-		countries.add(new Vertex(new Country("North Africa")));
-		countries.add(new Vertex(new Country("Egypt")));
-		countries.add(new Vertex(new Country("East Africa")));
-		countries.add(new Vertex(new Country("Congo")));
-		countries.add(new Vertex(new Country("South Africa")));
-		countries.add(new Vertex(new Country("Madagascar")));
-		countries.add(new Vertex(new Country("Iceland")));
-		countries.add(new Vertex(new Country("Svalbard*")));
-		countries.add(new Vertex(new Country("Scandinavia")));
-		countries.add(new Vertex(new Country("Ukraine")));
-		countries.add(new Vertex(new Country("Great Britain")));
-		countries.add(new Vertex(new Country("Northern Europe")));
-		countries.add(new Vertex(new Country("Southern Europe")));
-		countries.add(new Vertex(new Country("Western Europe")));
-		countries.add(new Vertex(new Country("Indonesia")));
-		countries.add(new Vertex(new Country("Phillipines*")));
-		countries.add(new Vertex(new Country("New Guinea")));
-		countries.add(new Vertex(new Country("Western Australia")));
-		countries.add(new Vertex(new Country("Eastern Australia")));
-		countries.add(new Vertex(new Country("New Zealand*")));
-		countries.add(new Vertex(new Country("Siam")));
-		countries.add(new Vertex(new Country("India")));
-		countries.add(new Vertex(new Country("China")));
-		countries.add(new Vertex(new Country("Mongolia")));
-		countries.add(new Vertex(new Country("Japan")));
-		countries.add(new Vertex(new Country("Irkutsk")));
-		countries.add(new Vertex(new Country("Yakutsk")));
-		countries.add(new Vertex(new Country("Kamchatka")));
-		countries.add(new Vertex(new Country("Siberia")));
-		countries.add(new Vertex(new Country("Afghanistan")));
-		countries.add(new Vertex(new Country("Ural")));
-		countries.add(new Vertex(new Country("Middle East")));
-
-	}
-	private void createBoard() {
-		// creacion del grafo
-		// 0-->Alaska
-		// 1-->Northwest Territory
-		// 2-->Greenland
-		// 3-->Alberta
-		// 4-->Ontario
-		// 5-->Quebec
-		// 6-->Western United States
-		// 7-->Eastern United States
-		// 8-->Central America
-		// 9-->Hawaii*
-		// 10-->Venezuela
-		// 11-->Peru
-		// 12-->Brazil
-		// 13-->Argentina
-		// 14-->Falkland Islands*
-		// 15-->North Africa
-		// 16-->Egypt
-		// 17-->East Africa
-		// 18-->Congo
-		// 19-->South Africa
-		// 20-->Madagascar
-		// 21-->Iceland
-		// 22-->Svalbard*
-		// 23-->Scandinavia
-		// 24-->Ukraine
-		// 25-->Great Britain
-		// 26-->Northern Europe
-		// 27-->Southern Europe
-		// 28-->Western Europe
-		// 29-->Indonesia
-		// 30-->Phillipines*
-		// 31-->New Guinea
-		// 32-->Western Australia
-		// 33-->Eastern Australia
-		// 34-->New Zealand*
-		// 35-->Siam
-		// 36-->India
-		// 37-->China
-		// 38-->Mongolia
-		// 39-->Japan
-		// 40-->Irkutsk
-		// 41-->Yakutsk
-		// 42-->Kamchatka
-		// 43-->Siberia
-		// 44-->Afghanistan
-		// 45-->Ural
-		// 46-->Middle East
-
-		createGraph("Alaska", "Kamchatka");
-		createGraph("Alaska", "Alberta");
-		createGraph("Alberta", "Northwest Territory");
-		createGraph("Alberta", "Western United States");
-		createGraph("Western United States", "Central America");
-		createGraph("Western United States", "Eastern United States");
-		createGraph("Eastern United States", "Central America");
-		createGraph("Greenland", "Northwest Territory");
-
-		createGraph("Venezuela", "Brazil");
-		createGraph("Venezuela", "Peru");
-		createGraph("Brazil", "Argentina");
-		createGraph("Peru", "Argentina");
-
-		createGraph("Iceland", "Great Britain");
-		createGraph("Iceland", "Scandinavia");
-		createGraph("Great Britain", "Scandinavia");
-		createGraph("Great Britain", "Northern Europe");
-		createGraph("Scandinavia", "Northern Europe");
-		createGraph("Northern Europe", "Western Europe");
-		createGraph("Northern Europe", "Southern Europe");
-		createGraph("Western Europe", "Southern Europe");
-		createGraph("Northern Europe", "Ukraine");
-
-		createGraph("North Africa", "Egypt");
-		createGraph("North Africa", "East Africa");
-		createGraph("North Africa", "Congo");
-		createGraph("East Africa", "South Africa");
-		createGraph("Egypt", "East Africa");
-
-		createGraph("Middle East", "India");
-		createGraph("Middle East", "Afghanistan");
-		createGraph("India", "Southeast Asia");
-		createGraph("India", "China");
-		createGraph("India", "Middle East");
-		createGraph("Afghanistan", "China");
-		createGraph("Afghanistan", "Ural");
-		createGraph("China", "Ural");
-		createGraph("China", "Mongolia");
-		createGraph("Ural", "Siberia");
-		createGraph("Ural", "Yakutsk");
-		createGraph("Siberia", "Yakutsk");
-		createGraph("Siberia", "Irkutsk");
-		createGraph("Yakutsk", "Irkutsk");
-		createGraph("Kamchatka", "Irkutsk");
-		createGraph("Kamchatka", "Mongolia");
-		createGraph("Kamchatka", "Japan");
-
-		createGraph("Indonesia", "New Guinea");
-		createGraph("Western Australia", "Eastern Australia");
-		
-		for (int i = 0; i < countries.size(); i++) {
-			g.addVertex(countries.get(i));
-		}
-
-	}
-	private void createGraph(String origin, String destination) {
-		Vertex or = new Vertex(numberOfPlayers);
-		Vertex dest = new Vertex(numberOfPlayers);
-		for (int i = 0; i < countries.size(); i++) {
-			if (origin.equals(countries.get(i))) {
-				or = countries.get(i);
-			}
-			if (destination.equals(countries.get(i))) {
-				dest = countries.get(i);
-			}
-		}
-		or.addEdge(new Edge(or, dest, 1));
-		dest.addEdge(new Edge(dest, or, 1));
-
-	}
-
-
-	public MyLinkedList<Element> getNodes() {
-		return nodes;
-	}
-
-
-	public void setNodes(MyLinkedList<Element> nodes) {
-		this.nodes = nodes;
-	}
-
-
-	public List<Graph> getGraph() {
-		return graph;
-	}
-
-
-	public void setGraph(List<Graph> graph) {
-		this.graph = graph;
-	}
-
-
-	public String getSelectedRegion() {
-		return selectedRegion;
-	}
-
-
-	public void setSelectedRegion(String selectedRegion) {
-		this.selectedRegion = selectedRegion;
-	}
-
-
-	public MyLinkedList<Vertex<Country>> getCountries() {
-		return countries;
-	}
-
-
-	public void setCountries(MyLinkedList<Vertex<Country>> countries) {
-		this.countries = countries;
-	}
-
-
-	public Graph getG() {
-		return g;
-	}
-
-
-	public void setG(Graph g) {
-		this.g = g;
-	}
-
-
-	public static HttpClient getHttpclient() {
-		return httpClient;
-	}
-
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-    
+    FacesContext.getCurrentInstance().addMessage(null, msg);
 }
+
+private void fillContinents() {
+	nAmerica.add("Alaska");
+	nAmerica.add("Northwest Territory");
+	nAmerica.add("Greenland");
+	nAmerica.add("Alberta");
+	nAmerica.add("Ontario");
+	nAmerica.add("Quebec");
+	nAmerica.add("Western United States");
+	nAmerica.add("Eastern United States");
+	nAmerica.add("Central America");
+	//regions.add(new Vertex("Hawaii*");
+	sAmerica.add("Venezuela");
+	sAmerica.add("Peru");
+	sAmerica.add("Brazil");
+	sAmerica.add("Argentina");
+	//regions.add(new Vertex("Falkland Islands*");
+	africa.add("North Africa");
+	africa.add("Egypt");
+	africa.add("East Africa");
+	africa.add("Congo");
+	africa.add("South Africa");
+	africa.add("Madagascar");
+	europe.add("Iceland");
+	europe.add("Svalbard*");
+	europe.add("Scandinavia");
+	europe.add("Ukraine");
+	europe.add("Great Britain");
+	europe.add("Northern Europe");
+	europe.add("Southern Europe");
+	europe.add("Western Europe");
+	oceania.add("Indonesia");
+	//oceania.add("Phillipines*");
+	oceania.add("New Guinea");
+	oceania.add("Western Australia");
+	oceania.add("Eastern Australia");
+	//oceania.add("New Zealand*");
+	asia.add("Siam");
+	asia.add("India");
+	asia.add("China");
+	asia.add("Mongolia");
+	asia.add("Japan");
+	asia.add("Irkutsk");
+	asia.add("Yakutsk");
+	asia.add("Kamchatka");
+	asia.add("Siberia");
+	asia.add("Afghanistan");
+	asia.add("Ural");
+	asia.add("Middle East");
+}
+
+private void fillRecionList() {
+	regions.add(new Vertex("Alaska"));
+	//System.out.println("first vertex"+regions.get(0).getInfo());
+	regions.add(new Vertex("Northwest Territory"));
+	regions.add(new Vertex("Greenland"));
+	regions.add(new Vertex("Alberta"));
+	regions.add(new Vertex("Ontario"));
+	regions.add(new Vertex("Quebec"));
+	regions.add(new Vertex("Western United States"));
+	regions.add(new Vertex("Eastern United States"));
+	regions.add(new Vertex("Central America"));
+	//regions.add(new Vertex("Hawaii*"));
+	regions.add(new Vertex("Venezuela"));
+	regions.add(new Vertex("Peru"));
+	regions.add(new Vertex("Brazil"));
+	regions.add(new Vertex("Argentina"));
+	//regions.add(new Vertex("Falkland Islands*"));
+	regions.add(new Vertex("North Africa"));
+	regions.add(new Vertex("Egypt"));
+	regions.add(new Vertex("East Africa"));
+	regions.add(new Vertex("Congo"));
+	regions.add(new Vertex("South Africa"));
+	regions.add(new Vertex("Madagascar"));
+	regions.add(new Vertex("Iceland"));
+	regions.add(new Vertex("Svalbard*"));
+	regions.add(new Vertex("Scandinavia"));
+	regions.add(new Vertex("Ukraine"));
+	regions.add(new Vertex("Great Britain"));
+	regions.add(new Vertex("Northern Europe"));
+	regions.add(new Vertex("Southern Europe"));
+	regions.add(new Vertex("Western Europe"));
+	regions.add(new Vertex("Indonesia"));
+	//regions.add(new Vertex("Phillipines*"));
+	regions.add(new Vertex("New Guinea"));
+	regions.add(new Vertex("Western Australia"));
+	regions.add(new Vertex("Eastern Australia"));
+	//regions.add(new Vertex("New Zealand*"));
+	regions.add(new Vertex("Siam"));
+	regions.add(new Vertex("India"));
+	regions.add(new Vertex("China"));
+	regions.add(new Vertex("Mongolia"));
+	regions.add(new Vertex("Japan"));
+	regions.add(new Vertex("Irkutsk"));
+	regions.add(new Vertex("Yakutsk"));
+	regions.add(new Vertex("Kamchatka"));
+	regions.add(new Vertex("Siberia"));
+	regions.add(new Vertex("Afghanistan"));
+	regions.add(new Vertex("Ural"));
+	regions.add(new Vertex("Middle East"));
+
+}
+
+private void createBoard() {
+	// creacion del grafo
+	// 0-->Alaska
+	// 1-->Northwest Territory
+	// 2-->Greenland
+	// 3-->Alberta
+	// 4-->Ontario
+	// 5-->Quebec
+	// 6-->Western United States
+	// 7-->Eastern United States
+	// 8-->Central America
+	// 9-->Hawaii*
+	// 10-->Venezuela
+	// 11-->Peru
+	// 12-->Brazil
+	// 13-->Argentina
+	// 14-->Falkland Islands*
+	// 15-->North Africa
+	// 16-->Egypt
+	// 17-->East Africa
+	// 18-->Congo
+	// 19-->South Africa
+	// 20-->Madagascar
+	// 21-->Iceland
+	// 22-->Svalbard*
+	// 23-->Scandinavia
+	// 24-->Ukraine
+	// 25-->Great Britain
+	// 26-->Northern Europe
+	// 27-->Southern Europe
+	// 28-->Western Europe
+	// 29-->Indonesia
+	// 30-->Phillipines*
+	// 31-->New Guinea
+	// 32-->Western Australia
+	// 33-->Eastern Australia
+	// 34-->New Zealand*
+	// 35-->Siam
+	// 36-->India
+	// 37-->China
+	// 38-->Mongolia
+	// 39-->Japan
+	// 40-->Irkutsk
+	// 41-->Yakutsk
+	// 42-->Kamchatka
+	// 43-->Siberia
+	// 44-->Afghanistan
+	// 45-->Ural
+	// 46-->Middle East
+
+	createGraph("Alaska", "Kamchatka");
+	createGraph("Alaska", "Alberta");
+	createGraph("Alaska", "Northwest Territory");
+	createGraph("Alberta", "Northwest Territory");
+	createGraph("Alberta", "Western United States");
+	createGraph("Western United States", "Central America");
+	createGraph("Western United States", "Eastern United States");
+	createGraph("Eastern United States", "Central America");
+	createGraph("Greenland", "Northwest Territory");
+
+	createGraph("Venezuela", "Brazil");
+	createGraph("Venezuela", "Peru");
+	createGraph("Brazil", "Argentina");
+	createGraph("Peru", "Argentina");
+
+	createGraph("Iceland", "Great Britain");
+	createGraph("Iceland", "Scandinavia");
+	createGraph("Great Britain", "Scandinavia");
+	createGraph("Great Britain", "Northern Europe");
+	createGraph("Scandinavia", "Northern Europe");
+	createGraph("Northern Europe", "Western Europe");
+	createGraph("Northern Europe", "Southern Europe");
+	createGraph("Western Europe", "Southern Europe");
+	createGraph("Northern Europe", "Ukraine");
+
+	createGraph("North Africa", "Egypt");
+	createGraph("North Africa", "East Africa");
+	createGraph("North Africa", "Congo");
+	createGraph("East Africa", "South Africa");
+	createGraph("Egypt", "East Africa");
+
+	createGraph("Middle East", "India");
+	createGraph("Middle East", "Afghanistan");
+	createGraph("India", "Southeast Asia");
+	createGraph("India", "China");
+	createGraph("India", "Middle East");
+	createGraph("Afghanistan", "China");
+	createGraph("Afghanistan", "Ural");
+	createGraph("China", "Ural");
+	createGraph("China", "Mongolia");
+	createGraph("Ural", "Siberia");
+	createGraph("Ural", "Yakutsk");
+	createGraph("Siberia", "Yakutsk");
+	createGraph("Siberia", "Irkutsk");
+	createGraph("Yakutsk", "Irkutsk");
+	createGraph("Kamchatka", "Irkutsk");
+	createGraph("Kamchatka", "Mongolia");
+	createGraph("Kamchatka", "Japan");
+
+	createGraph("Indonesia", "New Guinea");
+	createGraph("Western Australia", "Eastern Australia");
+	
+	for (int i = 0; i < regions.size(); i++) {
+		g.addVertex(regions.get(i));
+	}
+
+}
+private void createGraph(String origin, String destination) {
+	Vertex or = new Vertex(numberOfPlayers);
+	Vertex dest = new Vertex(numberOfPlayers);
+	for (int i = 0; i < regions.size(); i++) {
+		if (origin.equals(regions.get(i).getInfo())) {
+			
+			//System.out.println("origin"+regions.get(i).getInfo());
+			
+			for (int j = 0; j < regions.size(); j++) {
+				if (destination.equals(regions.get(j).getInfo())) {
+					
+					regions.get(i).addEdge(new Edge(regions.get(i), regions.get(j), 1));
+					regions.get(j).addEdge(new Edge(regions.get(j), regions.get(i), 1));
+					
+					//System.out.println("edge"+regions.get(i).getAdyacentEdges().getFirst().getInfo().getDestination().getInfo().toString());
+
+				}
+			}
+
+
+		}
+		
+	}
+	
+
+}
+
+private boolean ocupiesContinent(Player player) {
+	boolean resp=false;
+	int cuantity=player.getCountries().size();
+	for (int i = 0; i < player.getCountries().size(); i++) {
+		for(int j=0; j<regions.size(); j++) {
+			
+		}
+		
+	}
+	return true;
+}
+
+private int calculateTroops(int numberOfPlayers) {
+	if (numberOfPlayers == 3) {
+		return 35;
+	}
+	if (numberOfPlayers == 4) {
+		return 30;
+	}
+	if (numberOfPlayers == 5) {
+		return 25;
+	}
+	if (numberOfPlayers == 6) {
+		return 20;
+	}
+	return 0;
+
+}
+
+}
+
