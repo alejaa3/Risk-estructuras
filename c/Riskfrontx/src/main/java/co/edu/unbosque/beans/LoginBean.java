@@ -21,6 +21,7 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonParser;
 
 import co.edu.unbosque.model.Country;
+import co.edu.unbosque.model.InitGraph;
 import co.edu.unbosque.model.Player;
 import co.edu.unbosque.util.AESUtil;
 import co.edu.unbosque.util.grafo.generico.Edge;
@@ -68,31 +69,38 @@ private MyLinkedList<Player> listOfPlayers;
 
 int numberOfPlayers=3;
 private Graph g;
+private Player player1;
+private Player player2;
+private int currentPlayer=0;
+
+private boolean canAttack=true;
 
 @PostConstruct
 public void init() {
 	
+	InitGraph gra=new InitGraph();
 	
+	regions=gra.getRegions();
+	nAmerica=gra.getnAmerica();
+	sAmerica=gra.getsAmerica();
+	europe=gra.getEurope();
+	asia=gra.getAsia();
+	oceania=gra.getOceania();
+	africa=gra.getAfrica();
 	
-	regions=new MyLinkedList<Vertex<String>>();
-	nAmerica=new MyLinkedList<String>();
-	sAmerica=new MyLinkedList<String>();
-	europe=new MyLinkedList<String>();
-	asia=new MyLinkedList<String>();
-	oceania=new MyLinkedList<String>();
-	africa=new MyLinkedList<String>();
 	listOfPlayers=new MyLinkedList<Player>();
 	
-	g=new Graph();
 	
-	fillRecionList();
-	createBoard();
-	fillContinents();
+	g=gra.getG();
+	
+	//fillRecionList();
+	//createBoard();
+	//fillContinents();
 	
     countries = new HashMap<>();
-    
+    /*
     countries.put("Alaska", "Alaska");
-	//System.out.println("first vertex"+regions.get(0).getInfo(, );
+	////System.out.println("first vertex"+regions.get(0).getInfo(, );
 	countries.put("Northwest Territory", "Northwest Territory");
 	countries.put("Greenland", "Greenland");
 	countries.put("Alberta", "Alberta");
@@ -139,29 +147,70 @@ public void init() {
 	countries.put("Afghanistan", "Afghanistan");
 	countries.put("Ural", "Ural");
 	countries.put("Middle East", "Middle East");
+	*/
     
-    //countries.put("", "");
+    int initInfantry=calculateTroops(numberOfPlayers);
+	
+	listOfPlayers.add(new Player("Juanita", initInfantry));
+	listOfPlayers.add(new Player("Pepita", initInfantry));
+	listOfPlayers.add(new Player("Juanito", initInfantry));
+	listOfPlayers.add(new Player("Pepito", initInfantry));
+	listOfPlayers.add(new Player("Pepita2", initInfantry));
+	listOfPlayers.add(new Player("Pepito2", initInfantry)) ;
+	
+	listOfPlayers.get(0).getCountries().add(new Country("Alaska"));
+	listOfPlayers.get(0).getCountries().add(new Country("Alberta"));
+	listOfPlayers.get(0).getCountries().add(new Country("Quebec"));
+    
+	player1=listOfPlayers.get(currentPlayer);
+	player2=listOfPlayers.get(1);
+    
+	String origi="";
+	String dest="";
+	//Player player=listOfPlayers.get(currentPlayer);
+	
+	
+	for (int p = 0; p < listOfPlayers.get(currentPlayer).getCountries().size(); p++) {
+		    origi =(listOfPlayers.get(currentPlayer).getCountries().get(p).getName())+"";
+	    	countries.put(origi, origi);
+		    }
 
+	for (int i = 0; i < regions.size(); i++) {
+		cities = new HashMap<>();
+		for (int j = 0; j < regions.get(i).getAdyacentEdges().size(); j++) {
+		    //dest =convert((Vertex<String>) (regions.get(i).getAdyacentEdges().get(j).getDestination()));
+		    //origi =convert((Vertex<String>) (regions.get(i).getAdyacentEdges().get(j).getSource()));
+		    dest =(String) regions.get(i).getAdyacentEdges().get(j).getDestination().getInfo();
+		    origi =(String) regions.get(i).getAdyacentEdges().get(j).getSource().getInfo();
+		    //System.out.println(dest);
+		    //System.out.println(origi);
+		    cities.put(dest, dest);
+		}
+	    data.put(origi, cities);
+
+	}/*
 	for (int i = 0; i < countries.size(); i++) {
 		cities = new HashMap<>();
 		for (int j = 0; j < regions.get(i).getAdyacentEdges().size(); j++) {
-		    //cities.put(regions.get(i).getAdyacentEdges().get(j).getDestination().getInfo().toString()+"", regions.get(i).getAdyacentEdges().get(j).getDestination().getInfo().toString()+"");
+			//cities.put(regions.get(i).getAdyacentEdges().get(j)
+			dest =convert((Vertex<String>) (regions.get(i).getAdyacentEdges().get(j).getDestination()));
+			origi =convert((Vertex<String>) (regions.get(i).getAdyacentEdges().get(j).getSource()));
+			//System.out.println(dest);
+			//System.out.println(origi);
+			cities.put(dest, dest);
 		}
-		//data.put(regions.get(i).getAdyacentEdges().get(0).getSource().getInfo().toString()+"", cities);
-	    //cities.put("Berlin", "Berlin");
-	    //cities.put("Munich", "Munich");
-	    //cities.put("Frankfurt", "Frankfurt");
-	    //data.put(regions.get(i).getInfo()+"", cities);
+		data.put(origi, cities);
+		
 	}
 	
-
+*/
     
 
-    cities = new HashMap<>();
-    cities.put("Sao Paulo", "Sao Paulo");
-    cities.put("Rio de Janerio", "Rio de Janerio");
-    cities.put("Salvador", "Salvador");
-    data.put("Brazil", cities);
+    //cities = new HashMap<>();
+    //cities.put("Sao Paulo", "Sao Paulo");
+    //cities.put("Rio de Janerio", "Rio de Janerio");
+    //cities.put("Salvador", "Salvador");
+    //data.put("Brazil", cities);
     
     //cities = new HashMap<>();
     //for (int i = 0; i < regions.get(0).getAdyacentEdges().size(); i++) {
@@ -169,6 +218,38 @@ public void init() {
 	//}
     
     //data.put(regions.get(0).getInfo(), cities);
+}
+
+public void nextPlayer() {
+	System.out.println("next player selected");
+	currentPlayer++;
+	currentPlayer=currentPlayer%numberOfPlayers;
+	canAttack=true;
+}
+
+public Player throwDice(Player player1, Player player2) {
+	//esto es para poner la parte del dado
+	int resultado1=2;
+	int resultado2=1;
+	
+	return player1;
+}
+
+private String convert(Vertex ver) {
+	for(int k=0; k<countries.size(); k++) {
+    	Vertex<String> vertex1=regions.get(k);
+    	Vertex<String> vertex2=ver;
+		////System.out.println(vertex1);
+		////System.out.println(vertex2);
+
+    	if(vertex1==(vertex2)) {
+    		//System.out.println("SON IGUALEEES2!!!");
+    		return regions.get(k).getInfo().toString();
+    	}
+    
+	//regions.get(i).getAdyacentEdges().get(j);
+    }
+	return null;
 }
 
 public void increment() {
@@ -235,6 +316,14 @@ public void setCountry(String country) {
     this.country = country;
 }
 
+public String getCurrentPlayer() {
+	return listOfPlayers.get(currentPlayer).getName()+" turn";
+}
+
+public void setCurrentPlayer(int currentPlayer) {
+	this.currentPlayer = currentPlayer;
+}
+
 public String getCity() {
     return city;
 }
@@ -252,8 +341,8 @@ public Map<String, String> getCities() {
 }
 
 public void onCountryChange() {
-	System.out.println(222);
-	System.out.println(country);
+	//System.out.println(222);
+	//System.out.println(country);
 	
 	cities = new HashMap<>();
     cities.put("New York", "New York");
@@ -271,8 +360,11 @@ public void onCountryChange() {
 
 public void displayLocation() {
     FacesMessage msg;
+	//System.out.println(city);
+	//System.out.println(country);
+
     if (city != null && country != null) {
-        msg = new FacesMessage("Selected", city + " of " + country);
+        msg = new FacesMessage(throwDice(player1, player2).getName()+" won");
     }
     else {
         msg = new FacesMessage(FacesMessage.SEVERITY_ERROR, "Invalid", "City is not selected.");
@@ -281,6 +373,31 @@ public void displayLocation() {
     FacesContext.getCurrentInstance().addMessage(null, msg);
 }
 
+public void refreshTroops() {
+	
+}
+
+public void attack() {
+	FacesMessage msg;
+	//System.out.println(city);
+	//System.out.println(country);
+	
+	if (city != null && country != null) {
+		if(canAttack==true) {
+		msg = new FacesMessage(throwDice(player1, player2).getName()+" won");
+		refreshTroops();
+		canAttack=false;
+		}else {
+		msg = new FacesMessage("you can not attack anymore");
+		}
+	}
+	else {
+		msg = new FacesMessage(FacesMessage.SEVERITY_ERROR, "Invalid", "Region is not selected.");
+	}
+	
+	FacesContext.getCurrentInstance().addMessage(null, msg);
+}
+/*
 private void fillContinents() {
 	nAmerica.add("Alaska");
 	nAmerica.add("Northwest Territory");
@@ -333,7 +450,7 @@ private void fillContinents() {
 
 private void fillRecionList() {
 	regions.add(new Vertex("Alaska"));
-	//System.out.println("first vertex"+regions.get(0).getInfo());
+	////System.out.println("first vertex"+regions.get(0).getInfo());
 	regions.add(new Vertex("Northwest Territory"));
 	regions.add(new Vertex("Greenland"));
 	regions.add(new Vertex("Alberta"));
@@ -496,7 +613,7 @@ private void createGraph(String origin, String destination) {
 	for (int i = 0; i < regions.size(); i++) {
 		if (origin.equals(regions.get(i).getInfo())) {
 			
-			//System.out.println("origin"+regions.get(i).getInfo());
+			////System.out.println("origin"+regions.get(i).getInfo());
 			
 			for (int j = 0; j < regions.size(); j++) {
 				if (destination.equals(regions.get(j).getInfo())) {
@@ -504,7 +621,7 @@ private void createGraph(String origin, String destination) {
 					regions.get(i).addEdge(new Edge(regions.get(i), regions.get(j), 1));
 					regions.get(j).addEdge(new Edge(regions.get(j), regions.get(i), 1));
 					
-					//System.out.println("edge"+regions.get(i).getAdyacentEdges().getFirst().getInfo().getDestination().getInfo().toString());
+					////System.out.println("edge"+regions.get(i).getAdyacentEdges().getFirst().getInfo().getDestination().getInfo().toString());
 
 				}
 			}
@@ -516,6 +633,8 @@ private void createGraph(String origin, String destination) {
 	
 
 }
+*/
+
 
 private boolean ocupiesContinent(Player player) {
 	boolean resp=false;
